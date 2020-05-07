@@ -21,6 +21,7 @@ tell you that you have 15 days up to it.
 ## TODO
 
 - [x] Add unique identifier for each event
+- [x] List events
 - [ ] Removing events
 - [ ] Replace `dbg!` with [env_logger](https://crates.io/crates/env_logger)
 	(reasoning: Although `dbg!` is nice and dandy, it can't be disabled, and

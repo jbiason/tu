@@ -29,7 +29,13 @@ static FILENAME: &str = "events.toml";
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct EventList {
-    events: Vec<Event>,
+    pub events: Vec<Event>,
+}
+
+pub struct EventListIterator<'a> {
+    index: usize,
+    max: usize,
+    list: &'a Vec<Event>,
 }
 
 impl EventList {
@@ -56,6 +62,32 @@ impl EventList {
         let content = toml::to_string(&self).unwrap();
         if let Ok(mut fp) = File::create(FILENAME) {
             fp.write_all(content.as_bytes()).unwrap();
+        }
+    }
+}
+
+impl<'a> IntoIterator for &'a EventList {
+    type Item = &'a Event;
+    type IntoIter = EventListIterator<'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        EventListIterator {
+            index: 0,
+            max: self.events.len(),
+            list: &self.events,
+        }
+    }
+}
+
+impl<'a> Iterator for EventListIterator<'a> {
+    type Item = &'a Event;
+
+    fn next(&mut self) -> Option<&'a Event> {
+        if self.index >= self.max {
+            None
+        } else {
+            self.index += 1;
+            Some(&self.list[self.index - 1])
         }
     }
 }

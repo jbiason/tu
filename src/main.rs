@@ -33,7 +33,10 @@ fn main() {
 }
 
 fn list() {
-    unimplemented!()
+    let event_list = EventList::load();
+    for record in event_list.into_iter() {
+        println!("{}", record);
+    }
 }
 
 fn add_with_date(description: &str, date: &str) {

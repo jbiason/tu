@@ -16,7 +16,11 @@
    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use std::convert::From;
+use std::fmt;
+
 use chrono::prelude::*;
+use chrono::DateTime;
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 use uuid::Uuid;
@@ -39,6 +43,15 @@ pub struct Time {
 pub enum EventDateType {
     AllDay(Date),
     AtTime(Date, Time),
+}
+
+impl From<&EventDateType> for DateTime<Utc> {
+    fn from(origin: &EventDateType) -> Self {
+        match origin {
+            EventDateType::AllDay(d) => Utc.ymd(d.year, d.month, d.day).and_hms(0, 0, 0),
+            _ => Utc.ymd(1970, 1, 1).and_hms(0, 0, 0),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -65,5 +78,27 @@ impl Event {
         } else {
             panic!("Failed to parse the date");
         }
+    }
+
+    pub fn eta(&self) -> Option<String> {
+        let now = Utc::now();
+        let to: DateTime<Utc> = (&self.due).into();
+        let eta = to - now;
+        Some(format!("{}d", eta.num_days()))
+    }
+}
+
+impl fmt::Display for Event {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{:8} - {:>6} - {}",
+            self.id,
+            match self.eta() {
+                Some(x) => x,
+                None => "".into(),
+            },
+            self.description
+        )
     }
 }
