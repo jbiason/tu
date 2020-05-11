@@ -16,6 +16,8 @@
    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use log;
+
 mod args;
 mod eventlist;
 
@@ -23,7 +25,10 @@ use crate::eventlist::event::Event;
 use crate::eventlist::eventlist::EventList;
 
 fn main() {
-    if let Ok(command) = dbg!(args::parse()) {
+    env_logger::init();
+
+    if let Ok(command) = args::parse() {
+        log::debug!("Command: {:?}", command);
         match command {
             args::Action::List => list(),
             args::Action::Add(description, date) => add_with_date(&description, &date),
@@ -41,7 +46,12 @@ fn list() {
 
 fn add_with_date(description: &str, date: &str) {
     let event = Event::new_on_date(description, date);
-    let mut event_list = dbg!(EventList::load());
+    println!("Adding event {}", event);
+
+    let mut event_list = EventList::load();
+    log::debug!("EventList: {:?}", event_list);
     event_list.push(event);
     event_list.save();
+
+    println!("Done.");
 }

@@ -12,3 +12,5 @@ serde = "*"
 serde_derive = "*"
 toml = "0.5"
 uuid = { version = "0.8", features = ["v4"] }
+log = "*"
+env_logger = "0.7.1"
