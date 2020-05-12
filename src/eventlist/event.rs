@@ -46,11 +46,13 @@ pub enum EventDateType {
     AtTime(Date, Time),
 }
 
-impl From<&EventDateType> for DateTime<Utc> {
+impl From<&EventDateType> for DateTime<Local> {
     fn from(origin: &EventDateType) -> Self {
         match origin {
-            EventDateType::AllDay(d) => Utc.ymd(d.year, d.month, d.day).and_hms(0, 0, 0),
-            _ => Utc.ymd(1970, 1, 1).and_hms(0, 0, 0),
+            EventDateType::AllDay(d) => Local.ymd(d.year, d.month, d.day).and_hms(0, 0, 0),
+            EventDateType::AtTime(d, t) => {
+                Local.ymd(d.year, d.month, d.day).and_hms(t.hour, t.min, 0)
+            }
         }
     }
 }
@@ -73,13 +75,17 @@ pub struct Event {
     due: EventDateType,
 }
 
+fn uuid() -> String {
+    let (id, _, _, _) = Uuid::new_v4().as_fields();
+    format!("{:x}", id)
+}
+
 impl Event {
     pub fn new_on_date(description: &str, date: &str) -> Self {
         let fake_datetime = format!("{} 00:00:00", date);
         if let Ok(dt) = Utc.datetime_from_str(&fake_datetime, "%Y-%m-%d %H:%M:%S") {
-            let (id, _, _, _) = Uuid::new_v4().as_fields();
             Self {
-                id: format!("{:x}", id),
+                id: uuid(),
                 description: description.into(),
                 due: EventDateType::AllDay(Date {
                     year: dt.year(),
@@ -92,11 +98,45 @@ impl Event {
         }
     }
 
+    pub fn new_on_date_time(description: &str, date: &str, time: &str) -> Self {
+        let fake_datetime = format!("{} {}:00", date, time);
+        if let Ok(dt) = Utc.datetime_from_str(&fake_datetime, "%Y-%m-%d %H:%M:%S") {
+            Self {
+                id: uuid(),
+                description: description.into(),
+                due: EventDateType::AtTime(
+                    Date {
+                        year: dt.year(),
+                        month: dt.month(),
+                        day: dt.day(),
+                    },
+                    Time {
+                        hour: dt.hour(),
+                        min: dt.minute(),
+                    },
+                ),
+            }
+        } else {
+            panic!("Failed to parse the date");
+        }
+    }
+
     pub fn eta(&self) -> Option<String> {
-        let now = Utc::now();
-        let to: DateTime<Utc> = (&self.due).into();
+        let now = Local::now();
+        let to: DateTime<Local> = (&self.due).into();
         let eta = to - now;
-        Some(format!("{}d", eta.num_days()))
+        log::debug!("ETA for {}: {}", self.id, eta.num_minutes());
+
+        match self.due {
+            EventDateType::AllDay(_) if eta.num_minutes() > 0 => {
+                Some(format!("{}d", eta.num_days()))
+            }
+            EventDateType::AtTime(_, _) if eta.num_minutes() > 0 => match eta.num_days() {
+                0 => Some(format!("{}h", eta.num_hours())),
+                _ => Some(format!("{}d {}h", eta.num_days(), eta.num_hours())),
+            },
+            _ => None,
+        }
     }
 }
 

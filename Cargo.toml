@@ -6,11 +6,11 @@ authors = ["Julio Biason <julio.biason@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-chrono = "0.4.11"
-clap = "2.33.0"
+chrono = "0.4"
+clap = "2.33"
 serde = "*"
 serde_derive = "*"
 toml = "0.5"
 uuid = { version = "0.8", features = ["v4"] }
 log = "*"
-env_logger = "0.7.1"
+env_logger = "0.7"

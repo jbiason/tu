@@ -32,7 +32,9 @@ fn main() {
         match command {
             args::Action::List => list(),
             args::Action::Add(description, date) => add_with_date(&description, &date),
-            _ => println!("Command not implemented yet"),
+            args::Action::AddWithTime(description, date, time) => {
+                add_with_date_time(&description, &date, &time)
+            }
         }
     }
 }
@@ -46,6 +48,15 @@ fn list() {
 
 fn add_with_date(description: &str, date: &str) {
     let event = Event::new_on_date(description, date);
+    add_event(event);
+}
+
+fn add_with_date_time(description: &str, date: &str, time: &str) {
+    let event = Event::new_on_date_time(description, date, time);
+    add_event(event);
+}
+
+fn add_event(event: Event) {
     println!("Adding event {}", event);
 
     let mut event_list = EventList::load();
