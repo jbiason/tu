@@ -24,13 +24,13 @@ tell you that you have 15 days up to it.
 - [x] List events
 - [ ] Add Events with time
 - [ ] List events with time
-- [ ] Sort events by ETA
+- [x] Sort events by ETA
 - [ ] Option to remove events
 - [ ] Move the app "db" to a fixed space
 - [x] Replace `dbg!` with [env_logger](https://crates.io/crates/env_logger)
 	(reasoning: Although `dbg!` is nice and dandy, it can't be disabled, and
 	that's bad UI)
-- [ ] Remove `unwrap()`s (for example, in the argument parsing).
+- [ ] Remove `unwrap()`s
 
 ## License
 

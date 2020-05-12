@@ -16,6 +16,7 @@
    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use std::cmp::Ordering;
 use std::convert::From;
 use std::fmt;
 
@@ -50,6 +51,17 @@ impl From<&EventDateType> for DateTime<Utc> {
         match origin {
             EventDateType::AllDay(d) => Utc.ymd(d.year, d.month, d.day).and_hms(0, 0, 0),
             _ => Utc.ymd(1970, 1, 1).and_hms(0, 0, 0),
+        }
+    }
+}
+
+impl From<&EventDateType> for String {
+    fn from(origin: &EventDateType) -> String {
+        match origin {
+            EventDateType::AllDay(d) => format!("{}{}{}0000", d.year, d.month, d.day),
+            EventDateType::AtTime(d, t) => {
+                format!("{}{}{}{}{}", d.year, d.month, d.day, t.hour, t.min)
+            }
         }
     }
 }
@@ -100,5 +112,33 @@ impl fmt::Display for Event {
             },
             self.description
         )
+    }
+}
+
+impl Eq for Event {}
+
+impl PartialEq for Event {
+    fn eq(&self, other: &Self) -> bool {
+        let self_str = String::from(&self.due);
+        let other_str = String::from(&other.due);
+        self_str == other_str
+    }
+}
+
+impl PartialOrd for Event {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        let self_str = String::from(&self.due);
+        let other_str = String::from(&other.due);
+
+        Some(self_str.cmp(&other_str))
+    }
+}
+
+impl Ord for Event {
+    fn cmp(&self, other: &Self) -> Ordering {
+        let self_str = String::from(&self.due);
+        let other_str = String::from(&other.due);
+
+        self_str.cmp(&other_str)
     }
 }

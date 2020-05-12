@@ -56,6 +56,7 @@ impl EventList {
 
     pub fn push(&mut self, event: Event) {
         self.events.push(event);
+        self.events.sort();
     }
 
     pub fn save(&self) {

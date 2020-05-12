@@ -32,7 +32,7 @@ fn main() {
         match command {
             args::Action::List => list(),
             args::Action::Add(description, date) => add_with_date(&description, &date),
-            _ => println!("Unknown command"),
+            _ => println!("Command not implemented yet"),
         }
     }
 }
