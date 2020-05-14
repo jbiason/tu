@@ -23,16 +23,17 @@ tell you that you have 15 days up to it.
 ### Visual/Interface
 
 - [ ] Option to remove events
+	- [ ] Option to remove every "Over" event"
 - [ ] Pretty output like `bat`
 
 ### Internal changes
 
-- [ ] Automatically remove past events
-- [ ] Move the app "db" to a fixed space
-- [ ] Create a proper "repository" for the event list
+- [ ] `Date` and `Time` constructors
 - [ ] Change `due` match to use guardians and remove the internal match
 - [ ] Remove `fmt::Display` from `Event`; the display should be in the
 	main/interface layer
+- [ ] Move the app "db" to a fixed space
+- [ ] Create a proper "repository" for the event list
 - [ ] Replace toml; the resulting file, although simple to use internally, is
 	hard to read due our data format; we can either remove `serde` completely
 	or write our own `Serializer`/`Deserializer` interfaces
