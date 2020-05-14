@@ -20,14 +20,31 @@ tell you that you have 15 days up to it.
 
 ## TODO
 
+### Visual/Interface
+
+- [ ] Option to remove events
+- [ ] Pretty output like `bat`
+
+### Internal changes
+
+- [ ] Automatically remove past events
+- [ ] Move the app "db" to a fixed space
+- [ ] Create a proper "repository" for the event list
+- [ ] Change `due` match to use guardians and remove the internal match
+- [ ] Remove `fmt::Display` from `Event`; the display should be in the
+	main/interface layer
+- [ ] Replace toml; the resulting file, although simple to use internally, is
+	hard to read due our data format; we can either remove `serde` completely
+	or write our own `Serializer`/`Deserializer` interfaces
+- [ ] Tests
+
+### Done
+
 - [x] Add unique identifier for each event
 - [x] List events
 - [x] Add Events with time
 - [x] List events with time
 - [x] Sort events by ETA
-- [ ] Option to remove events
-- [ ] Automatically remove past events
-- [ ] Move the app "db" to a fixed space
 - [x] Replace `dbg!` with [env_logger](https://crates.io/crates/env_logger)
 	(reasoning: Although `dbg!` is nice and dandy, it can't be disabled, and
 	that's bad UI)
