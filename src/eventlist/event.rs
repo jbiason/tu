@@ -131,10 +131,12 @@ impl Event {
             EventDateType::AllDay(_) if eta.num_minutes() > 0 => {
                 Some(format!("{}d", eta.num_days()))
             }
-            EventDateType::AtTime(_, _) if eta.num_minutes() > 0 => match eta.num_days() {
-                0 => Some(format!("{}h", eta.num_hours())),
-                _ => Some(format!("{}d {}h", eta.num_days(), eta.num_hours())),
-            },
+            EventDateType::AtTime(_, _) if eta.num_days() > 0 => {
+                Some(format!("{}d {}h", eta.num_days(), eta.num_hours()))
+            }
+            EventDateType::AtTime(_, _) if eta.num_hours() > 0 => {
+                Some(format!("{}h", eta.num_hours()))
+            }
             _ => None,
         }
     }
