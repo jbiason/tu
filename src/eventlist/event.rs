@@ -26,6 +26,8 @@ use serde_derive::Deserialize;
 use serde_derive::Serialize;
 use uuid::Uuid;
 
+static DATE_FORMAT: &str = "%Y-%m-%d %H:%M:%S";
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Date {
     year: i32,
@@ -103,7 +105,7 @@ impl Event {
     // TODO result this
     pub fn new_on_date(description: &str, date: &str) -> Self {
         let fake_datetime = format!("{} 00:00:00", date);
-        if let Ok(dt) = Local.datetime_from_str(&fake_datetime, "%Y-%m-%d %H:%M:%S") {
+        if let Ok(dt) = Local.datetime_from_str(&fake_datetime, DATE_FORMAT) {
             // TODO turn format into static
             Self {
                 id: uuid(),
@@ -117,7 +119,7 @@ impl Event {
 
     pub fn new_on_date_time(description: &str, date: &str, time: &str) -> Self {
         let fake_datetime = format!("{} {}:00", date, time);
-        if let Ok(dt) = Local.datetime_from_str(&fake_datetime, "%Y-%m-%d %H:%M:%S") {
+        if let Ok(dt) = Local.datetime_from_str(&fake_datetime, DATE_FORMAT) {
             Self {
                 id: uuid(),
                 description: description.into(),
