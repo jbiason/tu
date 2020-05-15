@@ -26,7 +26,6 @@ use serde_derive::Deserialize;
 use serde_derive::Serialize;
 use uuid::Uuid;
 
-// TODO constructors
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Date {
     year: i32,
@@ -34,11 +33,29 @@ pub struct Date {
     day: u32,
 }
 
-// TODO constructors
+impl From<&DateTime<Local>> for Date {
+    fn from(origin: &DateTime<Local>) -> Date {
+        Date {
+            year: origin.year(),
+            month: origin.month(),
+            day: origin.day(),
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Time {
     hour: u32,
     min: u32,
+}
+
+impl From<&DateTime<Local>> for Time {
+    fn from(origin: &DateTime<Local>) -> Time {
+        Time {
+            hour: origin.hour(),
+            min: origin.minute(),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -83,17 +100,15 @@ fn uuid() -> String {
 }
 
 impl Event {
+    // TODO result this
     pub fn new_on_date(description: &str, date: &str) -> Self {
         let fake_datetime = format!("{} 00:00:00", date);
-        if let Ok(dt) = Utc.datetime_from_str(&fake_datetime, "%Y-%m-%d %H:%M:%S") {
+        if let Ok(dt) = Local.datetime_from_str(&fake_datetime, "%Y-%m-%d %H:%M:%S") {
+            // TODO turn format into static
             Self {
                 id: uuid(),
                 description: description.into(),
-                due: EventDateType::AllDay(Date {
-                    year: dt.year(),
-                    month: dt.month(),
-                    day: dt.day(),
-                }),
+                due: EventDateType::AllDay(Date::from(&dt)),
             }
         } else {
             panic!("Failed to parse the date");
@@ -102,21 +117,11 @@ impl Event {
 
     pub fn new_on_date_time(description: &str, date: &str, time: &str) -> Self {
         let fake_datetime = format!("{} {}:00", date, time);
-        if let Ok(dt) = Utc.datetime_from_str(&fake_datetime, "%Y-%m-%d %H:%M:%S") {
+        if let Ok(dt) = Local.datetime_from_str(&fake_datetime, "%Y-%m-%d %H:%M:%S") {
             Self {
                 id: uuid(),
                 description: description.into(),
-                due: EventDateType::AtTime(
-                    Date {
-                        year: dt.year(),
-                        month: dt.month(),
-                        day: dt.day(),
-                    },
-                    Time {
-                        hour: dt.hour(),
-                        min: dt.minute(),
-                    },
-                ),
+                due: EventDateType::AtTime(Date::from(&dt), Time::from(&dt)),
             }
         } else {
             panic!("Failed to parse the date");
