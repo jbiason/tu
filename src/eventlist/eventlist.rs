@@ -29,25 +29,30 @@ static FILENAME: &str = "events.toml";
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct EventList {
-    pub events: Vec<Event>,
+    pub events: Vec<Event>, // TODO remove pub
 }
+// XXX new type?  pub struct EventList(Vec<Event>);
 
+// TODO expose Vec iterator?
 pub struct EventListIterator<'a> {
     index: usize,
     max: usize,
     list: &'a Vec<Event>,
 }
 
+// TODO separate business rule from repository
 impl EventList {
     fn empty() -> Self {
         Self { events: Vec::new() }
     }
 
+    // TODO hide this
     pub fn load() -> Self {
         if let Ok(mut fp) = File::open(FILENAME) {
             let mut content = String::new();
             fp.read_to_string(&mut content)
                 .expect("Your event file is corrupted");
+            // TODO remove toml
             toml::from_str(&content).unwrap_or(EventList::empty())
         } else {
             EventList::empty()
@@ -59,7 +64,10 @@ impl EventList {
         self.events.sort();
     }
 
+    // TODO turn this into the destructor
+    // TODO if so, track changes
     pub fn save(&self) {
+        // TODO remove toml
         let content = toml::to_string(&self).unwrap();
         if let Ok(mut fp) = File::create(FILENAME) {
             fp.write_all(content.as_bytes()).unwrap();

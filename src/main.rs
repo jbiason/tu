@@ -40,12 +40,13 @@ fn main() {
 }
 
 fn list() {
-    let event_list = EventList::load();
+    let event_list = EventList::load(); // TODO hide this
     for record in event_list.into_iter() {
-        println!("{}", record);
+        println!("{}", record); // TODO remove display
     }
 }
 
+// TODO business rule (should be in EventList)
 fn add_with_date(description: &str, date: &str) {
     let event = Event::new_on_date(description, date);
     add_event(event);

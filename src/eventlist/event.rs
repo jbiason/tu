@@ -26,6 +26,7 @@ use serde_derive::Deserialize;
 use serde_derive::Serialize;
 use uuid::Uuid;
 
+// TODO constructors
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Date {
     year: i32,
@@ -33,6 +34,7 @@ pub struct Date {
     day: u32,
 }
 
+// TODO constructors
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Time {
     hour: u32,
