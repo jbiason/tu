@@ -40,9 +40,16 @@ fn main() {
 }
 
 fn list() {
-    let event_list = EventList::load(); // TODO hide this
+    let event_list = EventList::load(); // TODO hide load from outside
+    println!("{:^8} | {:^7} | {}", "ID", "ETA", "Description");
     for record in event_list.into_iter() {
-        println!("{}", record); // TODO remove display
+        let eta = if let Some(eta) = record.eta() {
+            eta
+        } else {
+            "Over".into()
+        };
+
+        println!("{:>8} | {:>7} | {}", record.id, eta, record.description);
     }
 }
 
@@ -58,12 +65,10 @@ fn add_with_date_time(description: &str, date: &str, time: &str) {
 }
 
 fn add_event(event: Event) {
-    println!("Adding event {}", event);
+    println!("Adding event {}", event.id);
 
     let mut event_list = EventList::load();
     log::debug!("EventList: {:?}", event_list);
     event_list.push(event);
     event_list.save();
-
-    println!("Done.");
 }

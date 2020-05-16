@@ -18,7 +18,6 @@
 
 use std::cmp::Ordering;
 use std::convert::From;
-use std::fmt;
 
 use chrono::prelude::*;
 use chrono::DateTime;
@@ -91,8 +90,8 @@ impl From<&EventDateType> for String {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Event {
-    id: String,
-    description: String,
+    pub id: String,
+    pub description: String,
     due: EventDateType,
 }
 
@@ -148,21 +147,6 @@ impl Event {
             }
             _ => None,
         }
-    }
-}
-
-impl fmt::Display for Event {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{:8} - {:>6} - {}",
-            self.id,
-            match self.eta() {
-                Some(x) => x,
-                None => "".into(),
-            },
-            self.description
-        )
     }
 }
 
