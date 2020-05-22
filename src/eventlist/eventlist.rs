@@ -24,6 +24,7 @@ use serde_derive::Serialize;
 use toml;
 
 use crate::eventlist::event::Event;
+use crate::eventlist::event::EventError;
 
 static FILENAME: &str = "events.toml";
 
@@ -38,6 +39,21 @@ pub struct EventListIterator<'a> {
     index: usize,
     max: usize,
     list: &'a Vec<Event>,
+}
+
+#[derive(Debug)]
+pub enum EventListError {
+    InvalidDate,
+    TooOld,
+}
+
+impl From<EventError> for EventListError {
+    fn from(error: EventError) -> EventListError {
+        match error {
+            EventError::InvalidDate(_) => EventListError::InvalidDate,
+            EventError::TooOld => EventListError::TooOld,
+        }
+    }
 }
 
 // TODO separate business rule from repository
@@ -72,6 +88,32 @@ impl EventList {
         if let Ok(mut fp) = File::create(FILENAME) {
             fp.write_all(content.as_bytes()).unwrap();
         }
+    }
+
+    /// Load the event list, add an all day event, and save it back.
+    /// Returns the ID of the new event.
+    pub fn add_event_with_date(description: &str, date: &str) -> Result<String, EventListError> {
+        let mut list = EventList::load();
+        let event = Event::new_on_date(description, date)?;
+        let id = String::from(&event.id);
+        list.push(event);
+        list.save();
+        Ok(id)
+    }
+
+    /// Load the event list, add an event with date and time, and save it back.
+    /// Returns the ID of the new event.
+    pub fn add_event_with_date_and_time(
+        description: &str,
+        date: &str,
+        time: &str,
+    ) -> Result<String, EventListError> {
+        let mut list = EventList::load();
+        let event = Event::new_on_date_time(description, date, time).unwrap();
+        let id = String::from(&event.id);
+        list.push(event);
+        list.save();
+        Ok(id)
     }
 }
 
