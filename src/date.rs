@@ -16,13 +16,14 @@
    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use std::convert::TryFrom;
+// TODO trait TryFrom
 
 use chrono::prelude::*;
 use chrono::LocalResult;
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum DateError {
+    /// The date is not valid
     InvalidDate,
 }
 
@@ -56,18 +57,25 @@ impl Date {
     pub fn day(&self) -> u8 {
         self.0.day() as u8
     }
-}
 
-impl TryFrom<&str> for Date {
-    type Error = DateError;
-
-    fn try_from(origin: &str) -> Result<Self, Self::Error> {
-        let mut frags = origin.split("-");
+    /// Try to convert a string to a Date.
+    pub fn try_from(value: &str) -> Result<Self, DateError> {
+        let mut frags = value.split("-");
         Date::new(
             frags.next().ok_or(DateError::InvalidDate)?.parse()?,
             frags.next().ok_or(DateError::InvalidDate)?.parse()?,
             frags.next().ok_or(DateError::InvalidDate)?.parse()?,
         )
+    }
+
+    /// Number of days till the date; None if the date is in the past.
+    pub fn eta(&self) -> Option<u16> {
+        let days = (self.0 - Local::today()).num_days();
+        if days >= 0 {
+            Some(days as u16)
+        } else {
+            None
+        }
     }
 }
 
@@ -82,17 +90,64 @@ pub fn invalid_date() {
 #[cfg(test)]
 #[test]
 pub fn valid_date() {
-    assert!(Date::new(2020, 5, 26).is_ok());
+    assert!(Date::new(2025, 5, 26).is_ok());
 }
 
 #[cfg(test)]
 #[test]
 pub fn from_string() {
-    if let Ok(dt) = Date::try_from("2020-05-26") {
-        assert_eq!(dt.year(), 2020);
+    if let Ok(dt) = Date::try_from("2025-05-26") {
+        assert_eq!(dt.year(), 2025);
         assert_eq!(dt.month(), 5);
         assert_eq!(dt.day(), 26);
     } else {
-        panic!("Can't parse 2020-05-26")
+        panic!("Can't parse 2025-05-26")
     }
+}
+
+#[cfg(test)]
+#[test]
+pub fn failed_from_string() {
+    assert!(Date::try_from("2020-127-26").is_err());
+}
+
+#[cfg(test)]
+#[test]
+pub fn eta_tomorrow() {
+    use chrono::Duration;
+    let future = Local::today() + Duration::days(1);
+    let date = Date::new(
+        future.year() as u16,
+        future.month() as u8,
+        future.day() as u8,
+    )
+    .unwrap();
+    assert_eq!(date.eta(), Some(1));
+}
+
+#[cfg(test)]
+#[test]
+pub fn eta_today() {
+    let future = Local::today();
+    let date = Date::new(
+        future.year() as u16,
+        future.month() as u8,
+        future.day() as u8,
+    )
+    .unwrap();
+    assert_eq!(date.eta(), Some(0));
+}
+
+#[cfg(test)]
+#[test]
+pub fn eta_yesterday() {
+    use chrono::Duration;
+    let future = Local::today() - Duration::days(1);
+    let date = Date::new(
+        future.year() as u16,
+        future.month() as u8,
+        future.day() as u8,
+    )
+    .unwrap();
+    assert_eq!(date.eta(), None);
 }

@@ -25,20 +25,29 @@ use clap::Arg;
 use clap::ArgMatches;
 use clap::SubCommand;
 
-mod validators;
+use crate::date::{Date, DateError};
 
 type Description = String;
-type Date = String;
-type Time = String;
+
+pub enum ParseError {
+    InvalidDate,
+    UnknownOption,
+}
+
+impl From<DateError> for ParseError {
+    fn from(_: DateError) -> ParseError {
+        ParseError::InvalidDate
+    }
+}
 
 #[derive(Debug)]
 pub enum Action {
     List,
     Add(Description, Date),
-    AddWithTime(Description, Date, Time),
+    AddWithTime(Description, String, String),
 }
 
-pub fn parse() -> Result<Action, ()> {
+pub fn parse() -> Result<Action, ParseError> {
     let params = App::new(crate_name!())
         .version(crate_version!())
         .author(crate_authors!())
@@ -50,7 +59,6 @@ pub fn parse() -> Result<Action, ()> {
                     Arg::with_name("date")
                         .required(true)
                         .takes_value(true)
-                        .validator(validators::date)
                         .help("Date for the event, in YYYY-MM-DD format"),
                 )
                 .arg(
@@ -65,7 +73,6 @@ pub fn parse() -> Result<Action, ()> {
                         .long("time")
                         .takes_value(true)
                         .required(false)
-                        .validator(validators::time)
                         .help("Time for the event"),
                 ),
         );
@@ -74,13 +81,14 @@ pub fn parse() -> Result<Action, ()> {
     match matches.subcommand() {
         ("", _) => Ok(Action::List),
         ("add", Some(arguments)) => parse_add(arguments),
-        (_, _) => Err(()),
+        (_, _) => Err(ParseError::UnknownOption),
     }
 }
 
-fn parse_add(arguments: &ArgMatches) -> Result<Action, ()> {
+fn parse_add(arguments: &ArgMatches) -> Result<Action, ParseError> {
     let description = arguments.value_of("description").unwrap();
     let date = arguments.value_of("date").unwrap();
+
     if let Some(time) = arguments.value_of("time") {
         Ok(Action::AddWithTime(
             description.into(),
@@ -88,6 +96,6 @@ fn parse_add(arguments: &ArgMatches) -> Result<Action, ()> {
             time.into(),
         ))
     } else {
-        Ok(Action::Add(description.into(), date.into()))
+        Ok(Action::Add(description.into(), Date::try_from(date)?))
     }
 }

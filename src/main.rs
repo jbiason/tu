@@ -19,6 +19,7 @@
 use log;
 
 mod args;
+mod date;
 mod eventlist;
 
 use crate::eventlist::eventlist::EventList;
@@ -31,7 +32,7 @@ fn main() {
         match command {
             args::Action::List => list(),
             args::Action::Add(description, date) => {
-                let event_id = EventList::add_event_with_date(&description, &date).unwrap();
+                let event_id = EventList::add_event_with_date(&description, "").unwrap();
                 println!("Created new event {}", event_id);
             }
             args::Action::AddWithTime(description, date, time) => {
@@ -40,6 +41,8 @@ fn main() {
                 println!("Created new event {}", event_id);
             }
         }
+    } else {
+        println!("Error!");
     }
 }
 
