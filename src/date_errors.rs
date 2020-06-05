@@ -16,24 +16,14 @@
    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use serde_derive::Deserialize;
-use serde_derive::Serialize;
-
-use crate::date::Date;
-use crate::datetime::DateTime;
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(tag = "due", content = "datetime")]
-pub enum EventType {
-    AllDay(Date),
-    AtTime(DateTime),
+#[derive(Debug, Eq, PartialEq)]
+pub enum DateError {
+    /// The date is not valid
+    InvalidDate,
 }
 
-impl EventType {
-    pub fn timestamp(&self) -> i64 {
-        match self {
-            EventType::AllDay(date) => date.timestamp(),
-            EventType::AtTime(datetime) => datetime.timestamp(),
-        }
+impl From<std::num::ParseIntError> for DateError {
+    fn from(_: std::num::ParseIntError) -> DateError {
+        DateError::InvalidDate
     }
 }

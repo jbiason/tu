@@ -23,6 +23,8 @@ use serde_derive::Deserialize;
 use serde_derive::Serialize;
 use toml;
 
+use crate::date::Date;
+use crate::datetime::DateTime;
 use crate::eventlist::event::Event;
 use crate::eventlist::event::EventError;
 
@@ -92,7 +94,7 @@ impl EventList {
 
     /// Load the event list, add an all day event, and save it back.
     /// Returns the ID of the new event.
-    pub fn add_event_with_date(description: &str, date: &str) -> Result<String, EventListError> {
+    pub fn add_event_with_date(description: &str, date: &Date) -> Result<String, EventListError> {
         let mut list = EventList::load();
         let event = Event::new_on_date(description, date)?;
         let id = String::from(&event.id);
@@ -105,11 +107,10 @@ impl EventList {
     /// Returns the ID of the new event.
     pub fn add_event_with_date_and_time(
         description: &str,
-        date: &str,
-        time: &str,
+        datetime: &DateTime,
     ) -> Result<String, EventListError> {
         let mut list = EventList::load();
-        let event = Event::new_on_date_time(description, date, time).unwrap();
+        let event = Event::new_on_date_time(description, datetime)?;
         let id = String::from(&event.id);
         list.push(event);
         list.save();

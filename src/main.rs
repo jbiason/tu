@@ -20,8 +20,11 @@ use log;
 
 mod args;
 mod date;
+mod date_errors;
+mod datetime;
 mod eventlist;
 
+use crate::eventlist::event::eventtype::EventType;
 use crate::eventlist::eventlist::EventList;
 
 fn main() {
@@ -32,12 +35,12 @@ fn main() {
         match command {
             args::Action::List => list(),
             args::Action::Add(description, date) => {
-                let event_id = EventList::add_event_with_date(&description, "").unwrap();
+                let event_id = EventList::add_event_with_date(&description, &date).unwrap();
                 println!("Created new event {}", event_id);
             }
-            args::Action::AddWithTime(description, date, time) => {
+            args::Action::AddWithTime(description, datetime) => {
                 let event_id =
-                    EventList::add_event_with_date_and_time(&description, &date, &time).unwrap();
+                    EventList::add_event_with_date_and_time(&description, &datetime).unwrap();
                 println!("Created new event {}", event_id);
             }
         }
@@ -50,14 +53,27 @@ fn list() {
     let event_list = EventList::load(); // TODO hide load from outside
     println!("{:^8} | {:^7} | {}", "ID", "ETA", "Description");
     // TODO: EventList::iter()
-    for record in event_list.into_iter() {
-        let eta = if let Some(eta) = record.eta() {
-            // TODO: "1d" == Tomorrow; "0d" == Today
-            eta
-        } else {
-            "Over".into()
+    for event in event_list.into_iter() {
+        let eta = match event.due {
+            EventType::AllDay(date) => {
+                let eta = date.eta();
+                match eta {
+                    None => "Over".into(),
+                    Some(0) => "Today".into(),
+                    Some(1) => "Tomorrow".into(),
+                    Some(x) => format!("{}d", x),
+                }
+            }
+            EventType::AtTime(datetime) => {
+                let eta = datetime.eta();
+                match eta {
+                    None => "Over".into(),
+                    Some((0, hours)) => format!("{}h", hours),
+                    Some((days, hours)) => format!("{}d {}h", days, hours),
+                }
+            }
         };
 
-        println!("{:>8} | {:>7} | {}", record.id, eta, record.description);
+        println!("{:>8} | {:>7} | {}", event.id, eta, event.description);
     }
 }

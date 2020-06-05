@@ -25,7 +25,9 @@ use clap::Arg;
 use clap::ArgMatches;
 use clap::SubCommand;
 
-use crate::date::{Date, DateError};
+use crate::date::Date;
+use crate::date_errors::DateError;
+use crate::datetime::DateTime;
 
 type Description = String;
 
@@ -44,7 +46,7 @@ impl From<DateError> for ParseError {
 pub enum Action {
     List,
     Add(Description, Date),
-    AddWithTime(Description, String, String),
+    AddWithTime(Description, DateTime),
 }
 
 pub fn parse() -> Result<Action, ParseError> {
@@ -92,8 +94,7 @@ fn parse_add(arguments: &ArgMatches) -> Result<Action, ParseError> {
     if let Some(time) = arguments.value_of("time") {
         Ok(Action::AddWithTime(
             description.into(),
-            date.into(),
-            time.into(),
+            DateTime::try_from(date, time)?,
         ))
     } else {
         Ok(Action::Add(description.into(), Date::try_from(date)?))
