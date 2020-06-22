@@ -35,9 +35,8 @@ static FILENAME: &str = "events.toml";
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct EventList {
-    pub events: Vec<Event>, // TODO remove pub
+    events: Vec<Event>,
 }
-// XXX new type?  pub struct EventList(Vec<Event>);
 
 // TODO expose Vec iterator?
 pub struct EventListIterator<'a> {
@@ -51,6 +50,7 @@ pub enum EventListError {
     InvalidDate,
     TooOld,
     NoStorage,
+    BrokenFormat,
 }
 
 impl From<EventError> for EventListError {
@@ -62,20 +62,28 @@ impl From<EventError> for EventListError {
     }
 }
 
+impl From<std::io::Error> for EventListError {
+    fn from(_: std::io::Error) -> EventListError {
+        EventListError::BrokenFormat
+    }
+}
+
+impl From<toml::de::Error> for EventListError {
+    fn from(_: toml::de::Error) -> EventListError {
+        EventListError::BrokenFormat
+    }
+}
+
 // TODO separate business rule from repository
 impl EventList {
-    fn empty() -> Self {
-        Self { events: Vec::new() }
-    }
-
     // TODO hide this
     pub fn load() -> Result<Self, EventListError> {
         if let Ok(mut fp) = File::open(EventList::event_file()?) {
             let mut content = String::new();
-            fp.read_to_string(&mut content)
-                .expect("Your event file is corrupted");
+            fp.read_to_string(&mut content)?;
             // TODO remove toml
-            Ok(toml::from_str(&content).unwrap_or(EventList::empty()))
+            let data = toml::from_str(&content)?;
+            Ok(data)
         } else {
             Ok(EventList::empty())
         }
@@ -130,6 +138,11 @@ impl EventList {
         path.push(FILENAME);
 
         Ok(path.into_os_string())
+    }
+
+    /// Create an empty event list.
+    fn empty() -> Self {
+        Self { events: Vec::new() }
     }
 }
 
