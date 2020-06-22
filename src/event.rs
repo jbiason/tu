@@ -24,9 +24,7 @@ use uuid::Uuid;
 
 use crate::date::Date;
 use crate::datetime::DateTime;
-pub mod eventtype;
-
-use eventtype::EventType;
+use crate::eventtype::EventType;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Event {

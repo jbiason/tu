@@ -22,10 +22,12 @@ mod args;
 mod date;
 mod date_errors;
 mod datetime;
+mod event;
 mod eventlist;
+mod eventtype;
 
-use crate::eventlist::event::eventtype::EventType;
-use crate::eventlist::eventlist::EventList;
+use eventlist::EventList;
+use eventtype::EventType;
 
 fn main() {
     env_logger::init();

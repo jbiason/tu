@@ -25,8 +25,8 @@ use toml;
 
 use crate::date::Date;
 use crate::datetime::DateTime;
-use crate::eventlist::event::Event;
-use crate::eventlist::event::EventError;
+use crate::event::Event;
+use crate::event::EventError;
 
 static FILENAME: &str = "events.toml";
 
