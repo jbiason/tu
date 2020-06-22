@@ -52,7 +52,9 @@ fn main() {
 }
 
 fn list() {
-    let event_list = EventList::load(); // TODO hide load from outside
+    // TODO hide load from outside
+    // TODO unwrap
+    let event_list = EventList::load().unwrap();
     println!("{:^8} | {:^7} | {}", "ID", "ETA", "Description");
     // TODO: EventList::iter()
     for event in event_list.into_iter() {

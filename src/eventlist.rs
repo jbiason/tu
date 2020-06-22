@@ -16,9 +16,12 @@
    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use std::ffi::OsString;
 use std::fs::File;
 use std::io::{Read, Write};
+use std::path::PathBuf;
 
+use dirs::config_dir;
 use serde_derive::Deserialize;
 use serde_derive::Serialize;
 use toml;
@@ -47,6 +50,7 @@ pub struct EventListIterator<'a> {
 pub enum EventListError {
     InvalidDate,
     TooOld,
+    NoStorage,
 }
 
 impl From<EventError> for EventListError {
@@ -65,15 +69,15 @@ impl EventList {
     }
 
     // TODO hide this
-    pub fn load() -> Self {
-        if let Ok(mut fp) = File::open(FILENAME) {
+    pub fn load() -> Result<Self, EventListError> {
+        if let Ok(mut fp) = File::open(EventList::event_file()?) {
             let mut content = String::new();
             fp.read_to_string(&mut content)
                 .expect("Your event file is corrupted");
             // TODO remove toml
-            toml::from_str(&content).unwrap_or(EventList::empty())
+            Ok(toml::from_str(&content).unwrap_or(EventList::empty()))
         } else {
-            EventList::empty()
+            Ok(EventList::empty())
         }
     }
 
@@ -84,22 +88,23 @@ impl EventList {
 
     // TODO turn this into the destructor
     // TODO if so, track changes
-    pub fn save(&self) {
+    pub fn save(&self) -> Result<(), EventListError> {
         // TODO remove toml
         let content = toml::to_string(&self).unwrap();
-        if let Ok(mut fp) = File::create(FILENAME) {
+        if let Ok(mut fp) = File::create(EventList::event_file()?) {
             fp.write_all(content.as_bytes()).unwrap();
         }
+        Ok(())
     }
 
     /// Load the event list, add an all day event, and save it back.
     /// Returns the ID of the new event.
     pub fn add_event_with_date(description: &str, date: &Date) -> Result<String, EventListError> {
-        let mut list = EventList::load();
+        let mut list = EventList::load()?;
         let event = Event::new_on_date(description, date)?;
         let id = String::from(&event.id);
         list.push(event);
-        list.save();
+        list.save()?;
         Ok(id)
     }
 
@@ -109,12 +114,22 @@ impl EventList {
         description: &str,
         datetime: &DateTime,
     ) -> Result<String, EventListError> {
-        let mut list = EventList::load();
+        let mut list = EventList::load()?;
         let event = Event::new_on_date_time(description, datetime)?;
         let id = String::from(&event.id);
         list.push(event);
-        list.save();
+        list.save()?;
         Ok(id)
+    }
+
+    /// Full path for the event file.
+    fn event_file() -> Result<OsString, EventListError> {
+        let base = config_dir().ok_or(EventListError::NoStorage)?;
+        let mut path = PathBuf::new();
+        path.push(base);
+        path.push(FILENAME);
+
+        Ok(path.into_os_string())
     }
 }
 

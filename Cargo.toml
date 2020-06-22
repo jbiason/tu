@@ -8,6 +8,7 @@ edition = "2018"
 [dependencies]
 chrono = { version = "0.4", features = ["serde"] }
 clap = "2.33"
+dirs = "3.0"
 env_logger = "0.7"
 log = "*"
 serde = "*"
