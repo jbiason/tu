@@ -38,13 +38,6 @@ pub struct EventList {
     events: Vec<Event>,
 }
 
-// TODO expose Vec iterator?
-pub struct EventListIterator<'a> {
-    index: usize,
-    max: usize,
-    list: &'a Vec<Event>,
-}
-
 #[derive(Debug)]
 pub enum EventListError {
     InvalidDate,
@@ -74,14 +67,11 @@ impl From<toml::de::Error> for EventListError {
     }
 }
 
-// TODO separate business rule from repository
 impl EventList {
-    // TODO hide this
     pub fn load() -> Result<Self, EventListError> {
         if let Ok(mut fp) = File::open(EventList::event_file()?) {
             let mut content = String::new();
             fp.read_to_string(&mut content)?;
-            // TODO remove toml
             let data = toml::from_str(&content)?;
             Ok(data)
         } else {
@@ -148,26 +138,9 @@ impl EventList {
 
 impl<'a> IntoIterator for &'a EventList {
     type Item = &'a Event;
-    type IntoIter = EventListIterator<'a>;
+    type IntoIter = std::slice::Iter<'a, Event>;
 
     fn into_iter(self) -> Self::IntoIter {
-        EventListIterator {
-            index: 0,
-            max: self.events.len(),
-            list: &self.events,
-        }
-    }
-}
-
-impl<'a> Iterator for EventListIterator<'a> {
-    type Item = &'a Event;
-
-    fn next(&mut self) -> Option<&'a Event> {
-        if self.index >= self.max {
-            None
-        } else {
-            self.index += 1;
-            Some(&self.list[self.index - 1])
-        }
+        self.events.iter()
     }
 }
