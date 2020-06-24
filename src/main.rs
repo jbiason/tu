@@ -45,6 +45,14 @@ fn main() {
                     EventList::add_event_with_date_and_time(&description, &datetime).unwrap();
                 println!("Created new event {}", event_id);
             }
+            args::Action::RemoveById(id) => {
+                let description = EventList::remove_by_id(&id).unwrap();
+                println!("Removed event '{}'", description);
+            }
+            args::Action::RemoveOutdated => {
+                let count = EventList::remove_outdated().unwrap();
+                println!("Removed {} events", count);
+            }
         }
     } else {
         println!("Error!");
@@ -56,7 +64,6 @@ fn list() {
     // TODO unwrap
     let event_list = EventList::load().unwrap();
     println!("{:^8} | {:^7} | {}", "ID", "ETA", "Description");
-    // TODO: EventList::iter()
     for event in event_list.into_iter() {
         let eta = match event.due {
             EventType::AllDay(date) => {

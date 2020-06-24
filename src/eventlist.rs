@@ -30,6 +30,7 @@ use crate::date::Date;
 use crate::datetime::DateTime;
 use crate::event::Event;
 use crate::event::EventError;
+use crate::eventtype::EventType;
 
 static FILENAME: &str = "events.toml";
 
@@ -44,6 +45,7 @@ pub enum EventListError {
     TooOld,
     NoStorage,
     BrokenFormat,
+    NoSuchEvent,
 }
 
 impl From<EventError> for EventListError {
@@ -87,7 +89,6 @@ impl EventList {
     // TODO turn this into the destructor
     // TODO if so, track changes
     pub fn save(&self) -> Result<(), EventListError> {
-        // TODO remove toml
         let content = toml::to_string(&self).unwrap();
         if let Ok(mut fp) = File::create(EventList::event_file()?) {
             fp.write_all(content.as_bytes()).unwrap();
@@ -118,6 +119,47 @@ impl EventList {
         list.push(event);
         list.save()?;
         Ok(id)
+    }
+
+    /// Remove an event by its ID
+    pub fn remove_by_id(id: &str) -> Result<String, EventListError> {
+        let mut list = EventList::load()?;
+        let item: Vec<&Event> = list
+            .events
+            .iter()
+            .filter(|event| event.id == id)
+            .take(1)
+            .collect();
+
+        if item.len() == 0 {
+            Err(EventListError::NoSuchEvent)
+        } else {
+            let description = item.first().unwrap().description.to_string();
+            list.events = list
+                .events
+                .into_iter()
+                .filter(|event| event.id != id)
+                .collect();
+            list.save()?;
+            Ok(description)
+        }
+    }
+
+    /// Remove all outdated events
+    pub fn remove_outdated() -> Result<usize, EventListError> {
+        let mut list = EventList::load()?;
+        let initial_elements = list.events.len();
+        list.events = list
+            .events
+            .into_iter()
+            .filter(|event| match event.due {
+                EventType::AllDay(date) => date.eta().is_some(),
+                EventType::AtTime(datetime) => datetime.eta().is_some(),
+            })
+            .collect();
+        let final_elements = list.events.len();
+        list.save()?;
+        Ok(initial_elements - final_elements)
     }
 
     /// Full path for the event file.

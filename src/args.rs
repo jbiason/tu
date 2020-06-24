@@ -30,10 +30,14 @@ use crate::date_errors::DateError;
 use crate::datetime::DateTime;
 
 type Description = String;
+type Id = String;
 
 pub enum ParseError {
     InvalidDate,
     UnknownOption,
+    MissingDescription,
+    MissingDate,
+    MissingEventId,
 }
 
 impl From<DateError> for ParseError {
@@ -47,6 +51,8 @@ pub enum Action {
     List,
     Add(Description, Date),
     AddWithTime(Description, DateTime),
+    RemoveById(Id),
+    RemoveOutdated,
 }
 
 pub fn parse() -> Result<Action, ParseError> {
@@ -77,19 +83,42 @@ pub fn parse() -> Result<Action, ParseError> {
                         .required(false)
                         .help("Time for the event"),
                 ),
+        )
+        .subcommand(
+            SubCommand::with_name("rm")
+                .about("Remove an event")
+                .arg(
+                    Arg::with_name("id")
+                        .takes_value(true)
+                        .required(false)
+                        .conflicts_with("outdated")
+                        .value_name("ID")
+                        .help("Remove a specific event by its ID"),
+                )
+                .arg(
+                    Arg::with_name("outdated")
+                        .short("o")
+                        .long("outdated")
+                        .takes_value(false)
+                        .required(false)
+                        .conflicts_with("id"),
+                ),
         );
-    let matches = params.get_matches();
 
+    let matches = params.get_matches();
     match matches.subcommand() {
         ("", _) => Ok(Action::List),
         ("add", Some(arguments)) => parse_add(arguments),
+        ("rm", Some(arguments)) => parse_rm(arguments),
         (_, _) => Err(ParseError::UnknownOption),
     }
 }
 
 fn parse_add(arguments: &ArgMatches) -> Result<Action, ParseError> {
-    let description = arguments.value_of("description").unwrap();
-    let date = arguments.value_of("date").unwrap();
+    let description = arguments
+        .value_of("description")
+        .ok_or(ParseError::MissingDescription)?;
+    let date = arguments.value_of("date").ok_or(ParseError::MissingDate)?;
 
     if let Some(time) = arguments.value_of("time") {
         Ok(Action::AddWithTime(
@@ -98,5 +127,14 @@ fn parse_add(arguments: &ArgMatches) -> Result<Action, ParseError> {
         ))
     } else {
         Ok(Action::Add(description.into(), Date::try_from(date)?))
+    }
+}
+
+fn parse_rm(arguments: &ArgMatches) -> Result<Action, ParseError> {
+    if arguments.is_present("outdated") {
+        Ok(Action::RemoveOutdated)
+    } else {
+        let id = arguments.value_of("id").ok_or(ParseError::MissingEventId)?;
+        Ok(Action::RemoveById(id.into()))
     }
 }
