@@ -9,7 +9,7 @@ edition = "2018"
 chrono = { version = "0.4", features = ["serde"] }
 clap = "2.33"
 dirs = "4.0"
-env_logger = "0.8"
+env_logger = "0.9"
 log = "*"
 serde = "*"
 serde_derive = "*"
